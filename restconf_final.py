@@ -3,104 +3,129 @@ import requests
 requests.packages.urllib3.disable_warnings()
 
 # Router IP Address is 10.0.15.189
-api_url = "<!!!REPLACEME with URL of RESTCONF Configuration API!!!>"
+api_url = "https://10.0.15.189/restconf/data/ietf-interfaces:interfaces/interface=loopback{}"
 
 # the RESTCONF HTTP headers, including the Accept and Content-Type
-# Two YANG data formats (JSON and XML) work with RESTCONF 
-headers = <!!!REPLACEME with Accept and Content-Type information headers!!!>
+headers = {"Accept": "application/yang-data+json", "Content-Type": "application/yang-data+json"}
 basicauth = ("admin", "cisco")
 
 
 def create():
-    yangConfig = <!!!REPLACEME with YANG data!!!> 
+    student_id = "65070206"  # example student ID
+    loopback_id = student_id[-3:]  # last 3 digits of student ID
+    ip_address = f"172.30.{loopback_id}.1"
+    yangConfig = {
+        "ietf-interfaces:interface": {
+            "name": f"loopback{student_id}",
+            "description": "Created via RESTCONF",
+            "type": "iana-if-type:softwareLoopback",
+            "enabled": True,
+            "ietf-ip:ipv4": {
+                "address": [{"ip": ip_address, "netmask": "255.255.255.0"}]
+            }
+        }
+    }
 
-    resp = requests.<!!!REPLACEME with the proper HTTP Method!!!>(
-        <!!!REPLACEME with URL!!!>, 
-        data=json.dumps(<!!!REPLACEME with yangConfig!!!>), 
-        auth=basicauth, 
-        headers=<!!!REPLACEME with HTTP Header!!!>, 
+    resp = requests.put(
+        api_url.format(student_id),
+        data=json.dumps(yangConfig),
+        auth=basicauth,
+        headers=headers,
         verify=False
-        )
+    )
 
-    if(resp.status_code >= 200 and resp.status_code <= 299):
-        print("STATUS OK: {}".format(resp.status_code))
-        return "<!!!REPLACEME with proper message!!!>"
+    if resp.status_code == 201:
+        return f"Interface loopback {student_id} is created successfully"
+    elif resp.status_code == 409:
+        return f"Cannot create: Interface loopback {student_id} already exists"
     else:
-        print('Error. Status Code: {}'.format(resp.status_code))
+        return f"Error: {resp.status_code}"
 
 
 def delete():
-    resp = requests.<!!!REPLACEME with the proper HTTP Method!!!>(
-        <!!!REPLACEME with URL!!!>, 
-        auth=basicauth, 
-        headers=<!!!REPLACEME with HTTP Header!!!>, 
+    student_id = "65070206"
+    resp = requests.delete(
+        api_url.format(student_id),
+        auth=basicauth,
+        headers=headers,
         verify=False
-        )
+    )
 
-    if(resp.status_code >= 200 and resp.status_code <= 299):
-        print("STATUS OK: {}".format(resp.status_code))
-        return "<!!!REPLACEME with proper message!!!>"
+    if resp.status_code == 204:
+        return f"Interface loopback {student_id} is deleted successfully"
+    elif resp.status_code == 404:
+        return f"Cannot delete: Interface loopback {student_id} does not exist"
     else:
-        print('Error. Status Code: {}'.format(resp.status_code))
+        return f"Error: {resp.status_code}"
 
 
 def enable():
-    yangConfig = <!!!REPLACEME with YANG data!!!>
+    student_id = "65070206"
+    yangConfig = {
+        "ietf-interfaces:interface": {
+            "enabled": True
+        }
+    }
 
-    resp = requests.<!!!REPLACEME with the proper HTTP Method!!!>(
-        <!!!REPLACEME with URL!!!>, 
-        data=json.dumps(<!!!REPLACEME with yangConfig!!!>), 
-        auth=basicauth, 
-        headers=<!!!REPLACEME with HTTP Header!!!>, 
+    resp = requests.patch(
+        api_url.format(student_id),
+        data=json.dumps(yangConfig),
+        auth=basicauth,
+        headers=headers,
         verify=False
-        )
+    )
 
-    if(resp.status_code >= 200 and resp.status_code <= 299):
-        print("STATUS OK: {}".format(resp.status_code))
-        return "<!!!REPLACEME with proper message!!!>"
+    if resp.status_code == 204:
+        return f"Interface loopback {student_id} is enabled successfully"
+    elif resp.status_code == 404:
+        return f"Cannot enable: Interface loopback {student_id} does not exist"
     else:
-        print('Error. Status Code: {}'.format(resp.status_code))
+        return f"Error: {resp.status_code}"
 
 
 def disable():
-    yangConfig = <!!!REPLACEME with YANG data!!!>
+    student_id = "65070206"
+    yangConfig = {
+        "ietf-interfaces:interface": {
+            "enabled": False
+        }
+    }
 
-    resp = requests.<!!!REPLACEME with the proper HTTP Method!!!>(
-        <!!!REPLACEME with URL!!!>, 
-        data=json.dumps(<!!!REPLACEME with yangConfig!!!>), 
-        auth=basicauth, 
-        headers=<!!!REPLACEME with HTTP Header!!!>, 
+    resp = requests.patch(
+        api_url.format(student_id),
+        data=json.dumps(yangConfig),
+        auth=basicauth,
+        headers=headers,
         verify=False
-        )
+    )
 
-    if(resp.status_code >= 200 and resp.status_code <= 299):
-        print("STATUS OK: {}".format(resp.status_code))
-        return "<!!!REPLACEME with proper message!!!>"
+    if resp.status_code == 204:
+        return f"Interface loopback {student_id} is shutdowned successfully"
+    elif resp.status_code == 404:
+        return f"Cannot shutdown: Interface loopback {student_id} does not exist"
     else:
-        print('Error. Status Code: {}'.format(resp.status_code))
+        return f"Error: {resp.status_code}"
 
 
 def status():
-    api_url_status = "<!!!REPLACEME with URL of RESTCONF Operational API!!!>"
+    student_id = "65070206"
+    api_url_status = api_url.format(student_id)
 
-    resp = requests.<!!!REPLACEME with the proper HTTP Method!!!>(
-        <!!!REPLACEME with URL!!!>, 
-        auth=basicauth, 
-        headers=<!!!REPLACEME with HTTP Header!!!>, 
+    resp = requests.get(
+        api_url_status,
+        auth=basicauth,
+        headers=headers,
         verify=False
-        )
+    )
 
-    if(resp.status_code >= 200 and resp.status_code <= 299):
-        print("STATUS OK: {}".format(resp.status_code))
+    if resp.status_code == 200:
         response_json = resp.json()
-        admin_status = <!!!REPLACEME!!!>
-        oper_status = <!!!REPLACEME!!!>
-        if admin_status == 'up' and oper_status == 'up':
-            return "<!!!REPLACEME with proper message!!!>"
-        elif admin_status == 'down' and oper_status == 'down':
-            return "<!!!REPLACEME with proper message!!!>"
-    elif(resp.status_code == 404):
-        print("STATUS NOT FOUND: {}".format(resp.status_code))
-        return "<!!!REPLACEME with proper message!!!>"
+        admin_status = response_json["ietf-interfaces:interface"]["enabled"]
+        if admin_status:
+            return f"Interface loopback {student_id} is enabled"
+        else:
+            return f"Interface loopback {student_id} is disabled"
+    elif resp.status_code == 404:
+        return f"No Interface loopback {student_id}"
     else:
-        print('Error. Status Code: {}'.format(resp.status_code))
+        return f"Error: {resp.status_code}"
